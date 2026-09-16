@@ -13,10 +13,13 @@ building an event agenda with the community.
 Signed-in users can:
 
 * Propose sessions with a title, topic, format, and description.
+* Choose whether to facilitate a new proposal or request a facilitator.
+* Edit sessions they originally submitted.
 * Upvote sessions they want to attend.
 * Volunteer to help facilitate sessions.
 * Add comments to session discussions.
 * Sort proposals by popularity or recency.
+* Combine facilitator and personal participation filters with AND logic.
 
 ## Getting started
 

@@ -28,6 +28,8 @@ export interface SessionBoardItem extends SessionProposal {
   comments: SessionCommentItem[];
   hasVoted: boolean;
   hasVolunteered: boolean;
+  hasCommented: boolean;
+  isSubmittedByCurrentUser: boolean;
 }
 
 export interface CreateSessionInput {
@@ -36,6 +38,13 @@ export interface CreateSessionInput {
   format: string;
   topic: string;
 }
+
+export type SessionSort = 'popular' | 'newest';
+export type SessionFilter =
+  | 'needs-facilitator'
+  | 'submitted'
+  | 'upvoted'
+  | 'commented';
 
 interface VoteRecord {
   id: string;
@@ -76,8 +85,7 @@ function buildBoard(
   comments: CommentRecord[],
   userId: string
 ): SessionBoardItem[] {
-  return sessions
-    .map((session) => {
+  return sessions.map((session) => {
       const sessionVotes = votes.filter(
         (vote) => vote.sessionId === session.id
       );
@@ -106,13 +114,48 @@ function buildBoard(
         hasVolunteered: sessionVolunteers.some(
           (volunteer) => volunteer.userId === userId
         ),
+        hasCommented: sessionComments.some(
+          (comment) => comment.userId === userId
+        ),
+        isSubmittedByCurrentUser: session.createdById === userId,
       };
+    });
+}
+
+export function sortSessionBoard(
+  sessions: SessionBoardItem[],
+  sort: SessionSort
+): SessionBoardItem[] {
+  return [...sessions].sort((a, b) => {
+    const dateDifference = b.createdAt.getTime() - a.createdAt.getTime();
+    const stableDifference = a.id.localeCompare(b.id);
+
+    if (sort === 'popular') {
+      return b.voteCount - a.voteCount || dateDifference || stableDifference;
+    }
+
+    return dateDifference || stableDifference;
+  });
+}
+
+export function filterSessionBoard(
+  sessions: SessionBoardItem[],
+  filters: SessionFilter[]
+): SessionBoardItem[] {
+  return sessions.filter((session) =>
+    filters.every((filter) => {
+      switch (filter) {
+        case 'needs-facilitator':
+          return session.volunteerCount === 0;
+        case 'submitted':
+          return session.isSubmittedByCurrentUser;
+        case 'upvoted':
+          return session.hasVoted;
+        case 'commented':
+          return session.hasCommented;
+      }
     })
-    .sort(
-      (a, b) =>
-        b.voteCount - a.voteCount ||
-        b.createdAt.getTime() - a.createdAt.getTime()
-    );
+  );
 }
 
 export async function getSessionBoard(
@@ -215,30 +258,76 @@ export async function getSessionBoard(
 
 export async function createSessionProposal(
   input: CreateSessionInput,
-  currentUser: AuthUser | null
-): Promise<void> {
+  currentUser: AuthUser | null,
+  volunteerToFacilitate = false
+): Promise<string> {
   const user = requireAuthenticatedUser(currentUser);
   const createdAt = new Date();
+  let sessionId: string;
 
   if (isLocalBackend()) {
+    sessionId = crypto.randomUUID();
     localSessions.push({
-      id: crypto.randomUUID(),
+      id: sessionId,
       ...input,
       createdById: user.id,
       createdByName: user.name,
       createdByEmail: user.email,
       createdAt,
     });
+  } else {
+    const session = await getRayfinClient().data.SessionIdea.create({
+      ...input,
+      created_by_id: user.id,
+      created_by_name: user.name,
+      created_by_email: user.email,
+      created_at: createdAt,
+    });
+    sessionId = session.id;
+  }
+
+  if (volunteerToFacilitate) {
+    await toggleSessionVolunteer(sessionId, user);
+  }
+
+  return sessionId;
+}
+
+export async function updateSessionProposal(
+  sessionId: string,
+  input: CreateSessionInput,
+  currentUser: AuthUser | null
+): Promise<void> {
+  const user = requireAuthenticatedUser(currentUser);
+
+  if (isLocalBackend()) {
+    const session = localSessions.find((item) => item.id === sessionId);
+    if (!session) {
+      throw new Error('Session proposal not found.');
+    }
+    if (session.createdById !== user.id) {
+      throw new Error('Only the submitter can edit this session proposal.');
+    }
+    Object.assign(session, input);
     return;
   }
 
-  await getRayfinClient().data.SessionIdea.create({
-    ...input,
-    created_by_id: user.id,
-    created_by_name: user.name,
-    created_by_email: user.email,
-    created_at: createdAt,
-  });
+  const client = getRayfinClient();
+  const sessions = await client.data.SessionIdea.select([
+    'id',
+    'created_by_id',
+  ])
+    .where({ id: { eq: sessionId } })
+    .execute();
+  const session = sessions[0];
+  if (!session) {
+    throw new Error('Session proposal not found.');
+  }
+  if (session.created_by_id !== user.id) {
+    throw new Error('Only the submitter can edit this session proposal.');
+  }
+
+  await client.data.SessionIdea.update({ id: sessionId }, input);
 }
 
 export async function toggleSessionVote(

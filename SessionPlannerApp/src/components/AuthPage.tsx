@@ -42,16 +42,16 @@ export function AuthPage() {
     : 'Sign in with Microsoft';
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="relative min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-hub-canvas via-white to-hub-neutral">
       {/* Decorative background shapes */}
-      <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-blue-100/50 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-indigo-100/40 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-hub-blue/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-hub-purple/10 blur-3xl" />
 
       <div className="relative flex flex-1 items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur-sm">
             <div className="mb-8 text-center">
-              <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-[#f6c453] font-black text-[#102a43]">
+              <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-hub-lime font-black text-hub-purple">
                 FD
               </div>
               <h1 className="text-2xl font-bold text-gray-900">
@@ -66,7 +66,7 @@ export function AuthPage() {
               type="button"
               onClick={handleSignIn}
               disabled={isLoading}
-              className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-md shadow-blue-600/25 transition-all hover:shadow-lg hover:shadow-blue-600/30 hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
+              className="flex w-full items-center justify-center rounded-xl bg-hub-blue px-4 py-3 text-sm font-medium text-white shadow-md shadow-hub-blue/25 transition-all hover:shadow-lg hover:shadow-hub-blue/30 hover:brightness-95 disabled:opacity-50 disabled:shadow-none"
             >
               {msLogo}
               {buttonLabel}

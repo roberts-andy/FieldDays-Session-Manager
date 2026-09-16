@@ -3,12 +3,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-blue-50: oklch(0.97 0.014 254.6);
-  --color-blue-100: oklch(0.932 0.032 255.6);
-  --color-blue-500: oklch(0.623 0.214 259.1);
-  --color-blue-600: oklch(0.546 0.245 262.9);
-  --color-blue-700: oklch(0.488 0.243 264.4);
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-hub-blue: #0078d4;
+  --color-hub-lime: #d4ec8e;
+  --color-hub-ivory: #fff8f3;
+  --color-hub-canvas: #f4f3f5;
+  --color-hub-neutral: #e8e6df;
+  --color-hub-purple: #463668;
+  --font-sans: 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
